@@ -2,65 +2,60 @@ name: Weekly Strava ETL Sync
 
 on:
   schedule:
-    # Runs at 00:00 UTC every Monday (Sunday evening in the US)
+    # Runs at 00:00 UTC every Monday
     - cron: '0 0 * * 1'
-  workflow_dispatch: # Allows you to click "Run Workflow" manually on GitHub
+  workflow_dispatch: # Allows manual trigger
+
+permissions:
+  contents: write # Important: Allows the bot to save the SQLite DB back to this repo
 
 jobs:
-  etl_pipeline:
+  run-pipeline:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout ETL Repo
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
           cache: 'pip'
 
       - name: Install Dependencies
-        run: pip install requests python-dotenv pandas
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests python-dotenv pandas
 
-      - name: Run Extract and Transform
+      - name: Run Extraction & Transform
         env:
           STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
           STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
           STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
         run: |
-          # 1. Pull data from Strava API into SQLite
           python src/extract.py
-          
-          # 2. Process SQLite data into metrics.json
           python src/transform.py
 
       - name: Commit Database Back to ETL Repo
+        # We still want to save the SQLite database to THIS repo so you have historical data
         run: |
           git config --global user.name "GitHub Action Bot"
           git config --global user.email "action@github.com"
           git add data/strava.db data/metrics.json
-          # Commit only if there are changes
           git commit -m "Automated Sync: Update local database and metrics" || echo "No changes to commit"
           git push
 
-      - name: Ship Metrics to Next.js Portfolio
+      - name: Push metrics.json to Portfolio Repo
+        uses: dmnemec/copy_file_to_another_repo_action@main
         env:
-          PORTFOLIO_PAT: ${{ secrets.PORTFOLIO_REPO_PAT }}
-        run: |
-          # Clone your portfolio repository into a temporary folder
-          git clone https://x-access-token:${{ secrets.PORTFOLIO_REPO_PAT }}@github.com/YOUR_USERNAME/YOUR_PORTFOLIO_REPO.git portfolio_temp
-          
-          # Ensure the public/data directory exists in the portfolio
-          mkdir -p portfolio_temp/public/data
-          
-          # Copy the fresh JSON file over
-          cp data/metrics.json portfolio_temp/public/data/metrics.json
-          
-          # Commit and push to the portfolio repo
-          cd portfolio_temp
-          git config --global user.name "Strava ETL Bot"
-          git config --global user.email "bot@strava-etl.com"
-          git add public/data/metrics.json
-          git commit -m "chore: Update weekly Strava metrics from ETL pipeline" || echo "No new metrics to push"
-          git push
+          # This secret must be set in your ETL repo settings
+          API_TOKEN_GITHUB: ${{ secrets.PORTFOLIO_REPO_PAT }}
+        with:
+          source_file: 'data/metrics.json'
+          destination_repo: 'sardaaryan/portfolio' # 👈 Replace with your actual username/repo
+          destination_folder: 'data'
+          user_email: 'github-actions@github.com'
+          user_name: 'strava-etl-bot'
+          commit_message: 'chore: Update weekly Strava metrics from ETL pipeline'
+          destination_branch: 'main'
