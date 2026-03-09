@@ -50,7 +50,7 @@ jobs:
         uses: dmnemec/copy_file_to_another_repo_action@main
         env:
           # This secret must be set in your ETL repo settings
-          API_TOKEN_GITHUB: ${{ secrets.PORTFOLIO_REPO_PAT }}
+          API_TOKEN_GITHUB: ${{ secrets.PORTFOLIO_REPO_TOKEN }}
         with:
           source_file: 'data/metrics.json'
           destination_repo: 'sardaaryan/portfolio' # 👈 Replace with your actual username/repo
