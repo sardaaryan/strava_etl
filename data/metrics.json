@@ -1,0 +1,41 @@
+{
+    "last_updated": "2026-03-09 08:23 UTC",
+    "weekly_stats": {
+        "total_distance": 0,
+        "total_elevation_feet": 0,
+        "activity_count": 0,
+        "avg_pace": "0:00"
+    },
+    "recent_activities": [
+        {
+            "name": "Morning Run",
+            "dist_display": 12.45,
+            "type": "Run",
+            "date_display": "Jan 18, 2026"
+        },
+        {
+            "name": "\ud83d\ude08\ud83c\udf19\u23f3",
+            "dist_display": 7.07,
+            "type": "Run",
+            "date_display": "Dec 22, 2025"
+        },
+        {
+            "name": "death",
+            "dist_display": 6.01,
+            "type": "Run",
+            "date_display": "Jul 25, 2025"
+        },
+        {
+            "name": "Greek God",
+            "dist_display": 3.89,
+            "type": "Run",
+            "date_display": "Jul 17, 2025"
+        },
+        {
+            "name": "Wee",
+            "dist_display": 3.23,
+            "type": "Run",
+            "date_display": "Jul 01, 2025"
+        }
+    ]
+}
